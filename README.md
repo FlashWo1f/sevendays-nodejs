@@ -175,3 +175,66 @@ NPM是随同NodeJS一起安装的包管理工具，能解决NodeJS代码部署�
 之后，我们就可以在package.json所在目录下运行npm publish发布代码了。
 
 <a href="https://www.npmjs.com/package/doc">获取更多信息</a>
+
+## day3 文件操作
+让前端觉得如获神器的不是NodeJS能做网络编程，而是NodeJS能够操作文件。小至文件查找，大至代码编译，几乎没有一个前端工具不操作文件。换个角度讲，几乎也只需要一些数据处理逻辑，再加上一些文件操作，就能够编写出大多数前端工具。本章将介绍与之相关的NodeJS内置模块。
+
+### 小文件拷贝
+NodeJS提供了基本的文件操作API，但是像文件拷贝这种高级功能就没有提供，因此我们先拿文件拷贝程序练手。与copy命令类似，我们的程序需要能接受源文件路径与目标文件路径两个参数。
+``` js
+var fs = require('fs');
+
+function copy(src, dst) {
+    fs.writeFileSync(dst, fs.readFileSync(src));
+}
+
+function main(argv) {
+    copy(argv[0], argv[1]);
+}
+
+main(process.argv.slice(2));  #有点问题
+```
+> process是一个全局变量，可通过process.argv获得命令行参数。由于argv[0]固定等于NodeJS执行程序的绝对路径，argv[1]固定等于主模块的绝对路径，因此第一个命令行参数从argv[2]这个位置开始。
+
+### path
+<a href="http://nodejs.org/api/path.html">官方文档</a>
+
+``` js
+import Vue from "vue";
+import Vuex from "vuex";
+import getters from "./getters";
+const path = require("path");
+
+Vue.use(Vuex);
+
+const files = require.context("./modules", false, /\.js$/);
+let modules = {};
+files.keys().forEach(key => {
+  let name = path.basename(key, ".js");
+  modules[name] = files(key).default || files(key);
+});
+const store = new Vuex.Store({
+  modules,
+  getters
+});
+export default store;
+```
+
+### 同步遍历
+
+``` js
+function travel(dir, callback) {
+    fs.readdirSync(dir).forEach(function (file) {
+        var pathname = path.join(dir, file);
+
+        if (fs.statSync(pathname).isDirectory()) {
+            travel(pathname, callback);
+        } else {
+            callback(pathname);
+        }
+    });
+}
+travel('/home/user', function (pathname) {
+    console.log(pathname);
+});
+```
